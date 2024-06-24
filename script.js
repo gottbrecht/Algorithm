@@ -88,4 +88,53 @@ Initialisere afstande og prioritetskøen.
 Iterativt vælge den node med den korteste kendte afstand, opdatere afstande til dens naboer og tilføje naboerne til køen.
 Konstruere og returnere den korteste vej, når slutnoden nås, eller returnere en tom liste, hvis ingen vej findes.*/
 
+//Implementerer en prioritets Queue og bruger Djkstras algoritme til at finde og tegne korteste vej
+class PriorityQueue {
+    constructor() {
+        this.items = [];
+    }
+
+    enqueue(element, priority) { //Tilføjer et element til køen med en bestemt prioritet, hvor lavere prioritet behandles først.
+        let qElement = { element, priority };
+        let added = false;
+        for (let i = 0; i < this.items.length; i++) {
+            if (this.items[i].priority > qElement.priority) {
+                this.items.splice(i, 0, qElement);
+                added = true;
+                break;
+            }
+        }
+        if (!added) {
+            this.items.push(qElement);
+        }
+    }
+
+    dequeue() { //Fjerner og returnerer elementet med den højeste prioritet (laveste værdier først).
+        if (this.isEmpty()) {
+            return "Underflow";
+        }
+        return this.items.shift();
+    }
+
+    isEmpty() { //Kontrollerer, om køen er tom.
+        return this.items.length === 0;
+    }
+}
+
+//Find korteste vej fra A til F
+let path = dijkstra('A', 'F'); //let path gemmer resultatet af D's algoritme, som en liste af node-id'er, der udgør korteste vej
+console.log('Shortest path:', path);
+
+// Draw the shortest path on the SVG
+for (let i = 0; i < path.length - 1; i++) {
+    let node1 = nodes.find(n => n.id === path[i]);
+    let node2 = nodes.find(n => n.id === path[i + 1]);
+    svg.append('line')
+        .attr('x1', node1.x)
+        .attr('y1', node1.y)
+        .attr('x2', node2.x)
+        .attr('y2', node2.y)
+        .attr('stroke', 'red')
+        .attr('stroke-width', 2);
+}
 
