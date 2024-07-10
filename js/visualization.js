@@ -70,6 +70,7 @@ let path = dijkstra('A', 'F'); //let path gemmer resultatet af D's algoritme, so
 console.log('Shortest path:', path);
 */
 
+//Nyeste opdatering: beregner og vise ruteoplysninger:
 function drawShortestPath(svg, path, nodes) {
 //Draw the shortest path on the SVG
 for (let i = 0; i < path.length - 1; i++) {
@@ -86,5 +87,19 @@ for (let i = 0; i < path.length - 1; i++) {
         .attr('y2', node2.y)
         .attr('stroke', 'red')
         .attr('stroke-width', 2);
+
+        totalDistance += distance(node1.x, node1.y, node2.x, node2.y);    
 }
+
+console.log(`Total distance: ${totalDistance.toFixed(2)}`);
+    svg.append('text')
+        .attr('x', 10)
+        .attr('y', 30)
+        .attr('text-anchor', 'start')
+        .attr('fill', 'black')
+        .text(`Total distance: ${totalDistance.toFixed(2)}`);
+}
+
+function distance(x1, y1, x2, y2) {
+    return Math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2);
 }
