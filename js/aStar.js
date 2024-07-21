@@ -1,18 +1,31 @@
-function aStar(start, end) {
-    let distances = {}; //Aktuel korteste afstand fra start til slut
-    let prev = {}; //forrige node på den korteste vej
-    let pq = new PriorityQueue(); //Prioritetskø
-
+function initializeDistancesAndPrev(nodes, start) {
+    let distances = {};
+    let prev = {};
     nodes.forEach(node => {
         if (node.id === start) {
             distances[node.id] = 0;
-            pq.enqueue(node.id, 0);
         } else {
             distances[node.id] = Infinity;
-            pq.enqueue(node.id, Infinity);
         }
         prev[node.id] = null;
     });
+    return { distances, prev };
+}
+
+function aStar(start, end) {
+    let distances = { distances, prev} = initializeDistancesAndPrev(nodes, start); //Aktuel korteste afstand fra start til slut
+    let pq = new PriorityQueue(); //Prioritetskø
+    let explored = new Set();
+
+    nodes.forEach(node => {
+        pq.enqueue(node.id, distances[node.id]);
+    });
+
+    const heuristic = (a, b) => {
+        let nodeA = nodes.find(n => n.id === a);
+        let nodeB = nodes.find(n => n.id === b);
+        return distance(nodeA.x, nodeA.y, nodeB.x, nodeB.y);
+    };
 
     while (!pq.isEmpty()) {
         let minNode = pq.dequeue().element;
@@ -28,23 +41,25 @@ function aStar(start, end) {
             path.push(start);
             return path.reverse();
         }
+
+        explored.add(minNode);
+
         
         //Opdater naboer
         let neighbors = edges.filter(edge => edge.source === minNode || edge.target === minNode);
         neighbors.forEach(neighbor => {
             let neighborNode = neighbor.source === minNode ? neighbor.target : neighbor.source;
-            let alt = distances[minNode] + neighbor.distance;
-            let heuristic = distance(nodes.find(n => n.id === neighborNode).x, nodes.find(n => n.id === neighborNode).y,
-                                    nodes.find(n => n.id === end).x, nodes.find(n => n.id === end).y);
-            if (alt + heuristic < distances[neighborNode]) {
-                distances[neighborNode] = alt + heuristic;
-                prev[neighborNode] = minNode;
-                pq.enqueue(neighborNode, distances[neighborNode]);
+            if (!explored.has(neighborNode)) {
+                let alt = distances[minNode] + neighbor.distance;
+                let priority = alt + heuristic(neighborNode, end);
+                if (alt < distances[neighborNode]) {
+                    distances[neighborNode] = alt;
+                    prev[neighborNode] = minNode;
+                    pq.enqueue(neighborNode, priority);
+                }
             }
+            
         });
     }
     return [];
-}
-function distance(x1, y1, x2, y2) {
-    return Math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2); // Euklidisk afstand
 }

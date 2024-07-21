@@ -1,19 +1,22 @@
+function initializeDistancesAndPrev(nodes, start) {
+    let distances = {};
+    let prev = {};
+    nodes.forEach(node => {
+        distances[node.id] = node.id === start ? 0 : Infinity;
+        prev[node.id] = null;
+    });
+    return { distances, prev };
+}
+
 //Dijkstras algoritme
 function dijkstra(start, end) {
-    let distances = {}; //Objekt, gemmer den korteste afstand fra startnoden til hver anden node.
-    let prev = {}; //Object der gemmer den forrige node på den korteste vej til hver node
+    let { distances, prev } = initializeDistancesAndPrev(nodes, start); //Objekt, gemmer den korteste afstand fra startnoden til hver anden node.
     let pq = new PriorityQueue(); //en prioritetskø til at vælge den node med den mindste afstand, der endnu ikke er blevet behandlet
+    let explored = new Set(); //Et sæt, der holder styr på de noder, som allerede er blevet behandlet. Dette sikrer, at vi ikke behandler den samme node flere gange.
 
-
+   
     nodes.forEach(node => {
-        if (node.id === start) {//Opsætning af startværdier
-            distances[node.id] = 0; //Afstand fra startnode til sig selv er 0
-            pq.enqueue(node.id, 0); //Tilføj startnoden til prioritetskøen med prioritet 0
-        } else {
-            distances[node.id] = Infinity; //Afstand til alle noder sættes til uendelig
-            pq.enqueue(node.id, Infinity); //Tilføj de andre noder til prioritetskøen med prioritet uendelig
-        }
-        prev[node.id] = null; //For alle noder sættes den forrige node til null.
+        pq.enqueue(node.id, distances[node.id]);
     });
 
     while (!pq.isEmpty()) {
@@ -30,6 +33,7 @@ function dijkstra(start, end) {
             return path.reverse(); //Returner den fundne vej i korrekt rækkefølge.
         }
 
+        explored.add(minNode);
 
         //Naboer
         let neighbors = edges.filter(edge => edge.source === minNode || edge.target === minNode);
