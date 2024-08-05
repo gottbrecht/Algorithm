@@ -2,9 +2,11 @@ function initializeDistancesAndPrev(nodes, start) {
     let distances = {};
     let prev = {};
     nodes.forEach(node => {
-        distances[node.id] = node.id === start ? 0 : Infinity;
+        distances[node.id] = Infinity;
         prev[node.id] = null;
     });
+    distances[start] = 0;
+    
     return { distances, prev };
 }
 

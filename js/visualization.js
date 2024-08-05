@@ -1,47 +1,35 @@
+function getNodePosition(nodeId, coordinate, nodes) {
+    const node = nodes.find(n => n.id === nodeId);
+    if (!node) {
+        console.error(`Node with id ${nodeId} not found`);
+        return 0;
+    }
+    return node[coordinate];
+}
+
 function drawEdgesAndNodes(svg, nodes, edges) {
 //Tilføj kanter(edges) til SVG
 svg.selectAll('line')
     .data(edges)
     .enter()
     .append('line')
-    .attr('x1', d => {
-        let sourceNode = nodes.find(n => n.id === d.source);
-        if (!sourceNode) {
-            console.error(`Source node ${d.source} not found`);
-            return 0;
-        }
-        return sourceNode.x;
-    })    
-        
-    .attr('y1', d => {
-        let sourceNode = nodes.find(n => n.id === d.source);
-        if (!sourceNode) {
-                console.error(`Source node ${d.source} not found`);
-                return 0;
-            }
-            return sourceNode.y;
-    })
-        
-    .attr('x2', d => {
-        let targetNode = nodes.find(n => n.id === d.target);
-            if (!targetNode) {
-                console.error(`Target node ${d.target} not found`);
-                return 0;
-            }
-            return targetNode.x;
-    })
-
-    .attr('y2', d => {
-        let targetNode = nodes.find(n => n.id === d.target);
-        if (!targetNode) {
-            console.error(`Target node ${d.target} not found`);
-            return 0;
-        }
-        return targetNode.y;
-    })
+    .attr('x1', d => getNodePosition(d.source, 'x', nodes))
+    .attr('y1', d => getNodePosition(d.source, 'y', nodes))
+    .attr('x2', d => getNodePosition(d.target, 'x', nodes))
+    .attr('y2', d => getNodePosition(d.target, 'y', nodes))
     .attr('stroke', 'black')
     .attr('class', 'edge');
 
+svg.selectAll('text.weight')
+    .data(edges)
+    .enter()
+    .append('text')
+    .attr('x', d => (getNodePosition(d.source, 'x', nodes) + getNodePosition(d.target, 'x', nodes)) / 2)
+    .attr('y', d => (getNodePosition(d.source, 'y', nodes) + getNodePosition(d.target, 'y', nodes)) / 2)
+    .attr('text-anchor', 'middle')
+    .attr('dy', -5)
+    .attr('class', 'weight')
+    .text(d => d.distance);
 
    //Tilføj nodes til SVG
 svg.selectAll('circle')
@@ -50,43 +38,88 @@ svg.selectAll('circle')
    .append('circle')
    .attr('cx', d => d.x)
    .attr('cy', d => d.y)
-   .attr('r', 10)
+   .attr('r', 7) 
    .attr('fill', 'blue')
    .attr('class', 'node');
 
 
 //Tilføj labels til nodes
-svg.selectAll('text')
+svg.selectAll('text.node-label')
    .data(nodes)
    .enter()
    .append('text')
    .attr('x', d => d.x)
    .attr('y', d => d.y - 15)
    .attr('text-anchor', 'middle')
-   .text(d => d.id)
-   .attr('class', 'node-label');
+   .attr('class', 'node-label')
+   .text(d => d.id);
 
-}    
+}  
 
-function highlightNode(svg, node, color) {
+//Path distance Variables
+let dijkstraPathDistance = 0;
+let aStarPathDistance = 0;
+let dijkstraExploredDistance = 0;
+let aStarExploredDistance = 0;
+
+
+function highlightNode(svg, nodeId, color) {
+    const node = nodes.find(n => n.id === nodeId);
     if (!node) {
-        console.error('Node is undefined or null:', node);
+        console.error('Node is undefined or null:', nodeId);
         return;
     }
-    if (!node.id) {
-        console.error('Node does not have an id:', node);
-        return;
-    }
+    console.log('Highlighting node:', nodeId, 'with color:', color);
+    
     svg.selectAll('circle')
-        .filter(d => d.id === node)
+        .filter(d => d && d.id === nodeId)
         .attr('fill', color);
 }
 
 function highlightEdge(svg, source, target, color) {
+    const edge = edges.find(e => (e.source === source && e.target === target) || (e.source === target && e.target === source));
+    if (!edge) {
+        console.error('Edge not found:', source, target);
+        return;
+    }
+
     svg.selectAll('line')
-        .filter(d => (d.source === source && d.target === target) || (d.source === target && d.target === source))
+        .filter(d => d && ((d.source === source && d.target === target) || (d.source === target && d.target === source)))
         .attr('stroke', color)
         .attr('stroke-width', 3);
+    
+    if (color === 'orange') {
+        dijkstraExploredDistance += edge.distance;
+    } else if (color === 'yellow') {
+        aStarExploredDistance += edge.distance;
+    }
+
+}
+
+
+
+function updatePathDistances() {
+    d3.select('#distance-info').html(''); //Clear previous distance information
+
+    d3.select('#distance-info').append('div')
+        .attr('class', 'totalDistanceText')
+        .style('color', 'red')
+        .text(`Total distance (Dijkstra): ${dijkstraPathDistance.toFixed(2)} meters`);
+
+    d3.select('#distance-info').append('div')
+        .attr('class', 'totalDistanceText')
+        .style('color', 'blue')
+        .text(`Total distance (A*): ${aStarPathDistance.toFixed(2)} meters`);
+
+    d3.select('#distance-info').append('div')
+        .attr('class', 'totalDistanceText')
+        .style('color', 'orange')
+        .text(`Total distance (Explored - Dijkstra): ${dijkstraExploredDistance.toFixed(2)} meters`);
+
+    d3.select('#distance-info').append('div')
+        .attr('class', 'totalDistanceText')
+        .style('color', 'yellow')
+        .text(`Total distance (Explored - A*): ${aStarExploredDistance.toFixed(2)} meters`);    
 }
 
 //Nyeste opdatering: beregner og vise ruteoplysninger:
@@ -117,10 +150,16 @@ for (let i = 0; i < path.length - 1; i++) {
 const totalDistanceInMeters = totalDistance * pixelToMeter;
 console.log(`Total distance for ${label}: ${totalDistanceInMeters.toFixed(2)} meters`);
 
+if (color === 'red') {
+    dijkstraPathDistance = totalDistanceInMeters;
+} else if (color === 'blue') {
+    aStarPathDistance = totalDistanceInMeters;
+}
+
 d3.select('#distance-info').append('div')
-        .attr('class', 'totalDistanceText')
-        .style('color', color)
-        .text(`Total distance (${label}): ${totalDistanceInMeters.toFixed(2)} meters`);
+    .attr('class', 'totalDistanceText')
+    .style('color', color)
+            .text(`Total distance (${label}): ${totalDistanceInMeters.toFixed(2)} meters`);
 }
 
 function distance(x1, y1, x2, y2) {
@@ -157,8 +196,9 @@ function dijkstraWithHighlights(svg, start, end) {
             return path.reverse();
         }
 
-        explored.add(minNode);
-        highlightNode(svg, minNode, 'orange');
+        explored.add(minNode); //Tilføjer til explored - som er et sæt der holder styr på nodes der allerede er blevet behandlet, så de ikke skal besøges igen 
+        console.log(`Processing node: ${minNode}`); // Tilføjet logning
+        highlightNode(svg, minNode, 'orange'); //ændrer node-farven i SVG'en for at indikere at den er blevet besøgt
 
         let neighbors = edges.filter(edge => edge.source === minNode || edge.target === minNode);
         neighbors.forEach(neighbor => {
@@ -174,12 +214,12 @@ function dijkstraWithHighlights(svg, start, end) {
             }
         });
     }
+    updatePathDistances();
     return [];
 }
 
 function aStarWithHighlights(svg, start, end) {
-    let distances = {};
-    let prev = {};
+    let { distances, prev } = initializeDistancesAndPrev(nodes, start);
     let pq = new PriorityQueue();
     let explored = new Set();
 
@@ -215,6 +255,7 @@ function aStarWithHighlights(svg, start, end) {
         }
 
         explored.add(minNode);
+       // console.log(`Processing node in A*: ${minNode}`);
         highlightNode(svg, minNode, 'yellow');
 
         let neighbors = edges.filter(edge => edge.source === minNode || edge.target === minNode);
@@ -232,5 +273,6 @@ function aStarWithHighlights(svg, start, end) {
             }
         });
     }
+    updatePathDistances();
     return [];
 }

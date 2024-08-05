@@ -1,12 +1,17 @@
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('Nodes:', nodes); //Log nodes
+    console.log('Edges:', edges); //Log edges
+    
     //Opret SVG-container
     const svg = d3.select('#map').append('svg')
         .attr('width', '100%')
-        .attr('height', '100%');
+        .attr('height', '100%')
+        .attr('viewBox', '0 0 800 400') //Juster viewBox dimensioner efter behov
+        .attr('preserveAspectRatio', 'xMidYMid meet'); 
 
     //Tegner grafen
     drawEdgesAndNodes(svg, nodes, edges);
-    
+
     let startNode = null;
     let endNode = null;
     let selectedAlgorithm = 'dijkstra';
@@ -45,33 +50,49 @@ document.addEventListener('DOMContentLoaded', () => {
             //korteste vej fra startNode til endNode med A*
             let aStarPath = aStarWithHighlights(svg, startNode.id, endNode.id);
             console.log('A* path:', aStarPath);
+            
+            d3.select('#distance-info').html(''); //Ryd totalDistanceText-div
 
             svg.selectAll('.totalDistanceText').remove();
 
 
-           /* //Fjern tidligere ruter hvis de findes
-            d3.select('#totalDistanceText_red').remove();
-            d3.select('#totalDistanceText_blue').remove();*/
+            //Fjern tidligere ruter hvis de findes
+            //d3.select('#totalDistanceText_red').remove();
+            //d3.select('#totalDistanceText_blue').remove();
 
             //Tegn korteste vej på SVG med forskellige farver
-            drawShortestPath(svg, dijkstraPath, nodes, 'red', 0);
-            drawShortestPath(svg, aStarPath, nodes, 'blue', 20);   
+            drawShortestPath(svg, dijkstraPath, nodes, 'red', 'Dijkstra');
+            drawShortestPath(svg, aStarPath, nodes, 'blue', 'A*');   
         }
     });
     
     document.getElementById('resetButton').addEventListener('click', () => {
+        resetNodes();
         d3.selectAll('svg > *').remove();
         drawEdgesAndNodes(svg, nodes, edges);
         startNode = null;
         endNode = null;
         //Tilføj algoritme information igen efter reset
-        addAlInfo(svg);
+     //   addAlInfo(svg);
     });
 
     //Tilføj algoritme information ved opstart
-    addAlInfo(svg);
+    //addAlInfo(svg);
 
 });
+
+function resetNodes() {
+    //Fjern start- og slutnoderne fra SVG'en
+    d3.select('[id^=startNode_]').remove();
+    d3.select('[id^=endNode_]').remove();
+
+    //Nulstil startNode og endNode variablerne
+    startNode = null;
+    endNode = null;
+
+    //Ryd ruteoplysningerne
+    d3.select('#distance-info').html('');
+}
 
 function getClosestNode(x, y, nodes) {
     return nodes.reduce((closestNode, node) => {
@@ -80,11 +101,12 @@ function getClosestNode(x, y, nodes) {
     }, nodes[0]);
 }
 
+
 function distance(x1, y1, x2, y2) {
     return Math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2);
 }
 
-
+/*
 function addAlInfo(svg) {
     const infoData = [
         { color: 'red', text: 'Dijkstra' },
@@ -113,7 +135,7 @@ function addAlInfo(svg) {
         .attr('y', (d, i) => i * 20 + 9)
         .attr('dy', '.35em')
         .text(d => d.text);
-}
+}*/
 
 
 
