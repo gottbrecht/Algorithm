@@ -7,22 +7,12 @@ const edges = [
     { source: 'C', target: 'E', distance: 4 },
     { source: 'D', target: 'E', distance: 3 },
     { source: 'D', target: 'F', distance: 6 },
-    /*{ source: 'E', target: 'H', distance: 1 },
+    { source: 'E', target: 'H', distance: 1 },
     { source: 'F', target: 'I', distance: 1 },
     { source: 'G', target: 'H', distance: 1 },
-    { source: 'H', target: 'I', distance: 1 }*/
+    { source: 'H', target: 'I', distance: 3 },
+    { source: 'I', target: 'F', distance: 4 },
+    { source: 'F', target: 'J', distance: 8 },
+    { source: 'J', target: 'K', distance: 6 },
+    { source: 'K', target: 'L', distance: 7 }
 ];
-
-
-
-
-/*const edges = [
-    { source: 'A', target: 'B', distance: 1 }, //source: startnode for kant
-    { source: 'B', target: 'C', distance: 3 },//target: slutnode for kant
-    { source: 'A', target: 'D', distance: 1 },//distance: aftsand mellem to nodes
-    { source: 'B', target: 'D', distance: 1 },
-    { source: 'C', target: 'E', distance: 1 },
-    { source: 'D', target: 'E', distance: 2 },
-    { source: 'D', target: 'F', distance: 1 },
-    { source: 'E', target: 'F', distance: 1 }
-];*/

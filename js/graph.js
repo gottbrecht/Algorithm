@@ -55,11 +55,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             svg.selectAll('.totalDistanceText').remove();
 
-
-            //Fjern tidligere ruter hvis de findes
-            //d3.select('#totalDistanceText_red').remove();
-            //d3.select('#totalDistanceText_blue').remove();
-
             //Tegn korteste vej på SVG med forskellige farver
             drawShortestPath(svg, dijkstraPath, nodes, 'red', 'Dijkstra');
             drawShortestPath(svg, aStarPath, nodes, 'blue', 'A*');   
@@ -72,13 +67,10 @@ document.addEventListener('DOMContentLoaded', () => {
         drawEdgesAndNodes(svg, nodes, edges);
         startNode = null;
         endNode = null;
-        //Tilføj algoritme information igen efter reset
-     //   addAlInfo(svg);
+  
     });
 
-    //Tilføj algoritme information ved opstart
-    //addAlInfo(svg);
-
+   
 });
 
 function resetNodes() {
@@ -106,36 +98,6 @@ function distance(x1, y1, x2, y2) {
     return Math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2);
 }
 
-/*
-function addAlInfo(svg) {
-    const infoData = [
-        { color: 'red', text: 'Dijkstra' },
-        { color: 'blue', text: 'A*' }
-    ];
-
-    const info = svg.append('g')
-        .attr('class', 'algorithm-info')
-        .attr('transform', 'translate(10, 10)'); // Juster positionen efter behov
-
-    info.selectAll('rect')
-        .data(infoData)
-        .enter()
-        .append('rect')
-        .attr('x', 0)
-        .attr('y', (d, i) => i * 20)
-        .attr('width', 18)
-        .attr('height', 18)
-        .attr('fill', d => d.color);
-
-    info.selectAll('text')
-        .data(infoData)
-        .enter()
-        .append('text')
-        .attr('x', 24)
-        .attr('y', (d, i) => i * 20 + 9)
-        .attr('dy', '.35em')
-        .text(d => d.text);
-}*/
 
 
 

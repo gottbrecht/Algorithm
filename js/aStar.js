@@ -1,24 +1,17 @@
-function initializeDistancesAndPrev(nodes, start) {
-    let distances = {};
-    let prev = {};
-    nodes.forEach(node => {
-        if (node.id === start) {
-            distances[node.id] = 0;
-        } else {
-            distances[node.id] = Infinity;
-        }
-        prev[node.id] = null;
-    });
-    return { distances, prev };
-}
-
-function aStar(start, end) {
-    let distances = { distances, prev} = initializeDistancesAndPrev(nodes, start); //Aktuel korteste afstand fra start til slut
-    let pq = new PriorityQueue(); //Prioritetskø
+function aStarWithHighlights(svg, start, end) {
+    let { distances, prev } = initializeDistancesAndPrev(nodes, start);
+    let pq = new PriorityQueue();
     let explored = new Set();
 
     nodes.forEach(node => {
-        pq.enqueue(node.id, distances[node.id]);
+        if (node.id === start) {
+            distances[node.id] = 0;
+            pq.enqueue(node.id, 0);
+        } else {
+            distances[node.id] = Infinity;
+            pq.enqueue(node.id, Infinity);
+        }
+        prev[node.id] = null;
     });
 
     const heuristic = (a, b) => {
@@ -30,7 +23,6 @@ function aStar(start, end) {
     while (!pq.isEmpty()) {
         let minNode = pq.dequeue().element;
 
-        //Hvis mål(node) er nået, returnerer hurtigste vej
         if (minNode === end) {
             let path = [];
             let temp = end;
@@ -43,9 +35,9 @@ function aStar(start, end) {
         }
 
         explored.add(minNode);
+        console.log(`Processing node in A*: ${minNode}`);
+        highlightNode(svg, minNode, 'yellow');
 
-        
-        //Opdater naboer
         let neighbors = edges.filter(edge => edge.source === minNode || edge.target === minNode);
         neighbors.forEach(neighbor => {
             let neighborNode = neighbor.source === minNode ? neighbor.target : neighbor.source;
@@ -56,10 +48,25 @@ function aStar(start, end) {
                     distances[neighborNode] = alt;
                     prev[neighborNode] = minNode;
                     pq.enqueue(neighborNode, priority);
+                    highlightEdge(svg, minNode, neighborNode, 'yellow');
                 }
             }
-            
         });
     }
+    updatePathDistances();
     return [];
+}
+
+function initializeDistancesAndPrev(nodes, start) {
+    let distances = {};
+    let prev = {};
+    nodes.forEach(node => {
+        if (node.id === start) {
+            distances[node.id] = 0;
+        } else {
+            distances[node.id] = Infinity;
+        }
+        prev[node.id] = null;
+    });
+    return { distances, prev };
 }

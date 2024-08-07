@@ -20,28 +20,28 @@ svg.selectAll('line')
     .attr('stroke', 'black')
     .attr('class', 'edge');
 
-svg.selectAll('text.weight')
+
+svg.selectAll('text.edge-label')//text.weight
     .data(edges)
     .enter()
     .append('text')
     .attr('x', d => (getNodePosition(d.source, 'x', nodes) + getNodePosition(d.target, 'x', nodes)) / 2)
     .attr('y', d => (getNodePosition(d.source, 'y', nodes) + getNodePosition(d.target, 'y', nodes)) / 2)
     .attr('text-anchor', 'middle')
-    .attr('dy', -5)
-    .attr('class', 'weight')
-    .text(d => d.distance);
+    //.attr('dy', -5)
+    .text(d => d.distance)
+    .attr('class',  'edge-label');
 
-   //Tilføj nodes til SVG
+    //Tilføj nodes til SVG
 svg.selectAll('circle')
-   .data(nodes)
-   .enter()
-   .append('circle')
-   .attr('cx', d => d.x)
-   .attr('cy', d => d.y)
-   .attr('r', 7) 
-   .attr('fill', 'blue')
-   .attr('class', 'node');
-
+    .data(nodes)
+    .enter()
+    .append('circle')
+    .attr('cx', d => d.x)
+    .attr('cy', d => d.y)
+    .attr('r', 7) 
+    .attr('fill', 'blue')
+    .attr('class', 'node');
 
 //Tilføj labels til nodes
 svg.selectAll('text.node-label')
@@ -56,7 +56,7 @@ svg.selectAll('text.node-label')
 
 }  
 
-//Path distance Variables
+//Path distance variables
 let dijkstraPathDistance = 0;
 let aStarPathDistance = 0;
 let dijkstraExploredDistance = 0;
@@ -73,7 +73,7 @@ function highlightNode(svg, nodeId, color) {
     
     svg.selectAll('circle')
         .filter(d => d && d.id === nodeId)
-        .attr('fill', color);
+        .attr('class', `node ${color}`);
 }
 
 function highlightEdge(svg, source, target, color) {
@@ -83,20 +83,20 @@ function highlightEdge(svg, source, target, color) {
         return;
     }
 
-    svg.selectAll('line')
-        .filter(d => d && ((d.source === source && d.target === target) || (d.source === target && d.target === source)))
-        .attr('stroke', color)
-        .attr('stroke-width', 3);
-    
+    console.log(`Highlighting edge: ${source} -> ${target} with color: ${color}`);
+
     if (color === 'orange') {
         dijkstraExploredDistance += edge.distance;
     } else if (color === 'yellow') {
         aStarExploredDistance += edge.distance;
     }
 
+    svg.selectAll('line')
+        .filter(d => d && ((d.source === source && d.target === target) || (d.source === target && d.target === source)))
+        .attr('stroke', color)
+        .attr('stroke-width', 3);
+
 }
-
-
 
 function updatePathDistances() {
     d3.select('#distance-info').html(''); //Clear previous distance information
@@ -159,120 +159,21 @@ if (color === 'red') {
 d3.select('#distance-info').append('div')
     .attr('class', 'totalDistanceText')
     .style('color', color)
-            .text(`Total distance (${label}): ${totalDistanceInMeters.toFixed(2)} meters`);
+    .text(`Total distance (${label}): ${totalDistanceInMeters.toFixed(2)} meters`);
 }
 
 function distance(x1, y1, x2, y2) {
     return Math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2);
 }
 
-function dijkstraWithHighlights(svg, start, end) {
-    let { distances, prev } = initializeDistancesAndPrev(nodes, start);
-    let pq = new PriorityQueue();
-    let explored = new Set();
-
+//Initialize distances and previous nodes
+function initializeDistancesAndPrev(nodes, start) {
+    let distances = {};
+    let prev = {};
     nodes.forEach(node => {
-        if (node.id === start) {
-            distances[node.id] = 0;
-            pq.enqueue(node.id, 0);
-        } else {
-            distances[node.id] = Infinity;
-            pq.enqueue(node.id, Infinity);
-        }
+        distances[node.id] = Infinity;
         prev[node.id] = null;
     });
-
-    while (!pq.isEmpty()) {
-        let minNode = pq.dequeue().element;
-
-        if (minNode === end) {
-            let path = [];
-            let temp = end;
-            while (prev[temp]) {
-                path.push(temp);
-                temp = prev[temp];
-            }
-            path.push(start);
-            return path.reverse();
-        }
-
-        explored.add(minNode); //Tilføjer til explored - som er et sæt der holder styr på nodes der allerede er blevet behandlet, så de ikke skal besøges igen 
-        console.log(`Processing node: ${minNode}`); // Tilføjet logning
-        highlightNode(svg, minNode, 'orange'); //ændrer node-farven i SVG'en for at indikere at den er blevet besøgt
-
-        let neighbors = edges.filter(edge => edge.source === minNode || edge.target === minNode);
-        neighbors.forEach(neighbor => {
-            let neighborNode = neighbor.source === minNode ? neighbor.target : neighbor.source;
-            if (!explored.has(neighborNode)) {
-                let alt = distances[minNode] + neighbor.distance;
-                if (alt < distances[neighborNode]) {
-                    distances[neighborNode] = alt;
-                    prev[neighborNode] = minNode;
-                    pq.enqueue(neighborNode, alt);
-                    highlightEdge(svg, minNode, neighborNode, 'orange');
-                }
-            }
-        });
-    }
-    updatePathDistances();
-    return [];
-}
-
-function aStarWithHighlights(svg, start, end) {
-    let { distances, prev } = initializeDistancesAndPrev(nodes, start);
-    let pq = new PriorityQueue();
-    let explored = new Set();
-
-    nodes.forEach(node => {
-        if (node.id === start) {
-            distances[node.id] = 0;
-            pq.enqueue(node.id, 0);
-        } else {
-            distances[node.id] = Infinity;
-            pq.enqueue(node.id, Infinity);
-        }
-        prev[node.id] = null;
-    });
-
-    const heuristic = (a, b) => {
-        let nodeA = nodes.find(n => n.id === a);
-        let nodeB = nodes.find(n => n.id === b);
-        return distance(nodeA.x, nodeA.y, nodeB.x, nodeB.y);
-    };
-
-    while (!pq.isEmpty()) {
-        let minNode = pq.dequeue().element;
-
-        if (minNode === end) {
-            let path = [];
-            let temp = end;
-            while (prev[temp]) {
-                path.push(temp);
-                temp = prev[temp];
-            }
-            path.push(start);
-            return path.reverse();
-        }
-
-        explored.add(minNode);
-       // console.log(`Processing node in A*: ${minNode}`);
-        highlightNode(svg, minNode, 'yellow');
-
-        let neighbors = edges.filter(edge => edge.source === minNode || edge.target === minNode);
-        neighbors.forEach(neighbor => {
-            let neighborNode = neighbor.source === minNode ? neighbor.target : neighbor.source;
-            if (!explored.has(neighborNode)) {
-                let alt = distances[minNode] + neighbor.distance;
-                let priority = alt + heuristic(neighborNode, end);
-                if (alt < distances[neighborNode]) {
-                    distances[neighborNode] = alt;
-                    prev[neighborNode] = minNode;
-                    pq.enqueue(neighborNode, priority);
-                    highlightEdge(svg, minNode, neighborNode, 'yellow');
-                }
-            }
-        });
-    }
-    updatePathDistances();
-    return [];
+    distances[start] = 0;
+    return { distances, prev };
 }
