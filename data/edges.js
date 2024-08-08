@@ -14,5 +14,6 @@ const edges = [
     { source: 'I', target: 'F', distance: 4 },
     { source: 'F', target: 'J', distance: 8 },
     { source: 'J', target: 'K', distance: 6 },
-    { source: 'K', target: 'L', distance: 7 }
+    { source: 'K', target: 'L', distance: 7 },
+    { source: 'G', target: 'L', distance: 10 }
 ];
