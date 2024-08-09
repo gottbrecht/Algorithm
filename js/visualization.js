@@ -21,7 +21,7 @@ svg.selectAll('line')
     .attr('class', 'edge');
 
 
-svg.selectAll('text.edge-label')//text.weight
+svg.selectAll('text.edge-label')
     .data(edges)
     .enter()
     .append('text')
@@ -103,12 +103,12 @@ function updatePathDistances() {
 
     d3.select('#distance-info').append('div')
         .attr('class', 'totalDistanceText')
-        .style('color', 'red')
+        .style('color', 'blue')
         .text(`Total distance (Dijkstra): ${dijkstraPathDistance.toFixed(2)} meters`);
 
     d3.select('#distance-info').append('div')
         .attr('class', 'totalDistanceText')
-        .style('color', 'blue')
+        .style('color', 'red')
         .text(`Total distance (A*): ${aStarPathDistance.toFixed(2)} meters`);
 
     d3.select('#distance-info').append('div')

@@ -4,10 +4,11 @@ document.addEventListener('DOMContentLoaded', () => {
     
     //Opret SVG-container
     const svg = d3.select('#map').append('svg')
-        .attr('width', '100%')
-        .attr('height', '100%')
-        .attr('viewBox', '0 0 800 400') //Juster viewBox dimensioner efter behov
-        .attr('preserveAspectRatio', 'xMidYMid meet'); 
+      //  .attr('width', '100%')
+      //  .attr('height', '100%')
+        .attr('viewBox', '0 0 1000 500') //Juster viewBox dimensioner efter behov
+        .attr('preserveAspectRatio', 'xMidYMid meet')
+       // .attr('transform', 'scale(1.5)');
 
     //Tegner grafen
     drawEdgesAndNodes(svg, nodes, edges);
@@ -56,8 +57,8 @@ document.addEventListener('DOMContentLoaded', () => {
             svg.selectAll('.totalDistanceText').remove();
 
             //Tegn korteste vej på SVG med forskellige farver
-            drawShortestPath(svg, dijkstraPath, nodes, 'red', 'Dijkstra');
-            drawShortestPath(svg, aStarPath, nodes, 'blue', 'A*');   
+            drawShortestPath(svg, dijkstraPath, nodes, 'blue', 'Dijkstra');
+            drawShortestPath(svg, aStarPath, nodes, 'red', 'A*');   
         }
     });
     
@@ -83,7 +84,15 @@ function resetNodes() {
     endNode = null;
 
     //Ryd ruteoplysningerne
-    d3.select('#distance-info').html('');
+    d3.selectAll('.shortest-path').remove();
+
+    dijkstraPathDistance = 0;
+    aStarPathDistance = 0;
+    dijkstraExploredDistance = 0;
+    aStarExploredDistance = 0;
+
+    updatePathDistances();
+
 }
 
 function getClosestNode(x, y, nodes) {
