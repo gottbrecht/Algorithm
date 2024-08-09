@@ -73,6 +73,8 @@ function highlightNode(svg, nodeId, color) {
     
     svg.selectAll('circle')
         .filter(d => d && d.id === nodeId)
+        .transition()  // Tilføj en overgang
+        .duration(500)
         .attr('class', `node ${color}`);
 }
 
@@ -92,7 +94,9 @@ function highlightEdge(svg, source, target, color) {
     }
 
     svg.selectAll('line')
-        .filter(d => d && ((d.source === source && d.target === target) || (d.source === target && d.target === source)))
+        .filter(d => d && ((d.source === source && d.target === target) || (d.source === target && d.target === source))) 
+        .transition()  // Tilføjer en overgang
+        .duration(500)
         .attr('stroke', color)
         .attr('stroke-width', 3);
 

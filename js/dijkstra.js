@@ -14,8 +14,12 @@ function dijkstraWithHighlights(svg, start, end) {
         }
         prev[node.id] = null;
     });
+    function processNextNode() {
+        if (pq.isEmpty()) {
+            updatePathDistances();
+            return;
+        }
 
-    while (!pq.isEmpty()) {
         let minNode = pq.dequeue().element;
 
         if (minNode === end) {
@@ -26,8 +30,11 @@ function dijkstraWithHighlights(svg, start, end) {
                 temp = prev[temp];
             }
             path.push(start);
-            return path.reverse();
+            drawShortestPath(svg, path.reverse(), nodes, 'red', 'Dijkstra');
+            updatePathDistances();
+            return;
         }
+
 
         explored.add(minNode); //Tilføjer til explored - som er et sæt der holder styr på nodes der allerede er blevet behandlet, så de ikke skal besøges igen 
         console.log(`Processing node: ${minNode}`); // Tilføjet logning
@@ -46,8 +53,10 @@ function dijkstraWithHighlights(svg, start, end) {
                 }
             }
         });
+
+        setTimeout(processNextNode, 500);
     }
-    updatePathDistances();
+    processNextNode();
     return [];
 }
 
